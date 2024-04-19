@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Counter</title>
+    <style>
+        /* Стили для кнопки */
+        .button-container {
+            position: relative; /* Размещаем контейнер относительно */
+            width: 200px; /* Установите размеры в соответствии с вашей картинкой */
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .click-button {
+            position: absolute; /* Абсолютное позиционирование */
+            top: 0; /* Располагаем кнопку сверху */
+            left: 0; /* Располагаем кнопку слева */
+            background-size: cover;
+            width: 100%; /* Установите размеры в соответствии с вашей картинкой */
+            height: 100%;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.2s ease; /* Анимация при изменении размера */
+            z-index: 1; /* Устанавливаем кнопку выше картинки */
+        }
+
+        .click-button.clicked {
+            transform: scale(1.2); /* Увеличение размера кнопки на 20% */
+        }
+
+        /* Стили для шкалы прогресса */
+        .progress-bar {
+            width: 200px; /* Соответствует ширине кнопки */
+            height: 20px;
+            background-color: #f0f0f0;
+            margin-bottom: 20px;
+            overflow: hidden; /* Обрезать содержимое за пределами блока */
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #4caf50; /* Цвет шкалы прогресса */
+            width: 0; /* Изначально шкала прогресса пуста */
+            transition: width 0.2s ease; /* Анимация при изменении ширины */
+        }
+
+        /* Стили для картинки */
+        .result-image {
+            position: absolute; /* Абсолютное позиционирование */
+            top: 0; /* Располагаем картинку сверху */
+            left: 0; /* Располагаем картинку слева */
+            width: 100%; /* Устанавливаем ширину в соответствии с контейнером */
+            height: 100%; /* Устанавливаем высоту в соответствии с контейнером */
+            display: none; /* Изначально скрываем картинку */
+            z-index: 2; /* Устанавливаем картинку выше кнопки */
+        }
+    
+    </style>
+</head>
+<body>
+     
+    <h1>Владыка</h1>
+    <p>Количество нулей в суммах: {{ click_counter.clicks }}</p>
+    <!-- Счетчик уровней -->
+    <p>Уровень зарплаты: {{ click_counter.reset_count }}</p>
+    <!-- Контейнер для кнопки и картинки -->
+    <div class="button-container">
+        <!-- Форма с кнопкой-картинкой -->
+        <form action="{% url 'increment_click' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="click-button" style="background-image: url('{% if click_counter.reset_count == 1 %}{% static 'images/vlad1.jpg' %}{% elif click_counter.reset_count == 2 %}{% static 'images/level2.png'' %}{% endif %}')" onclick="this.classList.add('clicked'); updateProgressBar();"></button>
+        </form>
+        <!-- Картинка для счетчика меньше 10 -->
+        <img class="result-image" src="{% static 'images/nahui.png' %}" alt="Nahui">
+    </div>
+
+    <!-- Кнопка для уменьшения счетчика -->
+    <form action="{% url 'decrement_clicks' %}" method="post" onsubmit="showImageIfNeeded()">
+        {% csrf_token %}
+        <button type="submit">Прокачать Влада</button>
+    </form>
+
+    <!-- Шкала прогресса -->
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <script>
+        // Функция для обновления шкалы прогресса
+        function updateProgressBar() {
+            var progressBar = document.getElementById('progress');
+            var clicks = {{ click_counter.clicks }};
+            var maxWidth = document.querySelector('.progress-bar').offsetWidth;
+            var percentage = (clicks % 10) * (maxWidth / 10); // Каждый клик заполняет 10% шкалы
+            progressBar.style.width = percentage + 'px'; // Устанавливаем ширину шкалы прогресса
+        }
+        
+        // Функция для показа картинки, если счетчик меньше 10
+        function showImageIfNeeded() {
+            var clicks = {{ click_counter.clicks }};
+            if (clicks < 10) {
+                var image = document.querySelector('.result-image');
+                image.style.display = 'block'; // Показываем картинку
+                setTimeout(function() {
+                    image.style.display = 'none'; // Скрываем картинку через 2 секунды
+                }, 2000);
+            }
+        }
+    
+        // Вызываем функцию для обновления шкалы прогресса при загрузке страницы
+        window.onload = updateProgressBar;
+    </script>
+    
+</body>
+</html>
